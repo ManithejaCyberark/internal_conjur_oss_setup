@@ -1,0 +1,72 @@
+#!/bin/bash
+
+set +x 
+rm -rf .env
+docker-compose down -v
+# docker-compose build
+# docker-compose up -d conjur
+# docker-compose up -d proxy
+docker-compose exec -T conjur conjurctl wait -r 240
+
+#Generate the master key
+docker-compose run --no-deps --rm conjur data-key generate > data_key
+export CONJUR_DATA_KEY="$(< data_key)"
+
+#create services
+docker-compose up -d
+
+echo "created myConjurAccount and login"
+echo "***************"
+echo " "
+admin_api_key=$(docker-compose exec conjur conjurctl account create myConjurAccount | awk '/API key for admin/ {print $NF}'| tr '  \n\r' ' '|awk '{$1=$1};1')
+export CONJUR_AUTHN_API_KEY=$admin_api_key
+echo $CONJUR_AUTHN_API_KEY
+echo " "
+echo "****************"
+echo "initiating myConjurAccount and logging in as a  admin user"
+docker-compose exec client conjur init -u conjur -a myConjurAccount 
+# docker-compose exec client conjur init -u https://proxy -a myConjurAccount --self-signed -y
+echo " "
+echo "****************"
+echo "Log in to Conjur as admin"
+echo " "
+docker-compose exec client conjur authn login -u admin -p $CONJUR_AUTHN_API_KEY
+#docker-compose exec client conjur login -i admin -p $CONJUR_AUTHN_API_KEY
+echo "****************"
+echo " "
+
+echo "loading authentication policy authn-jwt-jenkins.yml"
+docker-compose exec client conjur policy load root /policy/authn-jwt-jenkins.yml
+docker-compose exec client conjur policy load root /policy/jenkins-projects.yml
+# docker-compose exec client conjur policy load -b root -f /policy/authn-jwt-jenkins.yml
+# docker-compose exec client conjur policy load -b root -f  /policy/jenkins-projects.yml
+
+echo "loading authentication values"
+#conjur_cli:8
+# docker-compose exec client conjur variable set -i conjur/authn-jwt/jenkins/issuer -v 'http://localhost:8084'
+# docker-compose exec client conjur variable set -i conjur/authn-jwt/jenkins/audience -v 'jenkins-server'
+# docker-compose exec client conjur variable set -i conjur/authn-jwt/jenkins/token-app-property -v 'jenkins_name'
+# docker-compose exec client conjur variable set -i conjur/authn-jwt/jenkins/identity-path -v 'jenkins/projects'
+
+# conjur_cli:5
+docker-compose exec client conjur variable values add conjur/authn-jwt/jenkins/jwks-uri 'http://jenkins:8080/jwtauth/conjur-jwk-set'
+docker-compose exec client conjur variable values add conjur/authn-jwt/jenkins/issuer 'http://localhost:8084'
+docker-compose exec client conjur variable values add conjur/authn-jwt/jenkins/audience 'jenkins-server'
+docker-compose exec client conjur variable values add conjur/authn-jwt/jenkins/token-app-property 'jenkins_name'
+docker-compose exec client conjur variable values add conjur/authn-jwt/jenkins/identity-path 'jenkins/projects'
+
+echo "loading secrets"
+docker-compose exec client conjur policy load root policy/jenkins-secrets.yml
+
+echo "populating secret values to conjur variables"
+
+docker-compose exec client conjur variable values add Dev-Team-1-credential1  'secret1'
+docker-compose exec client conjur variable values add Dev-Team-1-credential2  'secret2'
+docker-compose exec client conjur variable values add Dev-Team-1-credential3  'secret3'
+docker-compose exec client conjur variable values add Dev-Team-1-credential4  'secret4'
+
+docker-compose exec client conjur variable values add test-pipeline-credential1 'secret1'
+docker-compose exec client conjur variable values add test-pipeline-credential2 'secret2'
+docker-compose exec client conjur variable values add test-pipeline-credential3 'secret3'
+docker-compose exec client conjur variable values add test-pipeline-credential4 'secret4'
+docker-compose exec client conjur variable values add test-pipeline-credential5 'secret5'
