@@ -20,7 +20,7 @@
             jenkins: true
             #authn-jwt/jenkins/jenkins_pronoun: Pipeline
             #Note: authn-jwt/jenkins/identity: auidenceValue-jenkinsJobname
-            authn-jwt/jenkins/identity: jenkins-server-Dev-Team-1
+            authn-jwt/jenkins/identity: conjur-jenkins-demo1-Dev-Team-1
 
         - !host
           id: test-pipeline
@@ -28,7 +28,7 @@
             jenkins: true
             authn-jwt/jenkins/jenkins_pronoun: Pipeline
             #Note: authn-jwt/jenkins/identity: auidenceValue-jenkinsJobname
-            authn-jwt/jenkins/identity: jenkins-server-test-pipeline
+            authn-jwt/jenkins/identity: conjur-jenkins-demo1-test-pipeline
 
         # Grant all hosts in collection above to be members of projects group
         - !grant
@@ -39,4 +39,4 @@
 
 - !grant
   role: !group conjur/authn-jwt/jenkins/consumers
-  member: !group jenkins/projects
+  member: !group myspace/jwt-apps
