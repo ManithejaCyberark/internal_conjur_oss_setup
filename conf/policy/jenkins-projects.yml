@@ -19,7 +19,7 @@
           annotations:
             jenkins: true
             #authn-jwt/jenkins/jenkins_pronoun: Pipeline
-            #Note: authn-jwt/jenkins/identity: auidence-jenkins-jobname
+            #Note: authn-jwt/jenkins/identity: auidenceValue-jenkinsJobname
             authn-jwt/jenkins/identity: jenkins-server-Dev-Team-1
 
         - !host
@@ -27,7 +27,7 @@
           annotations:
             jenkins: true
             authn-jwt/jenkins/jenkins_pronoun: Pipeline
-            #Note: authn-jwt/jenkins/identity: auidence-jenkins-jobname
+            #Note: authn-jwt/jenkins/identity: auidenceValue-jenkinsJobname
             authn-jwt/jenkins/identity: jenkins-server-test-pipeline
 
         # Grant all hosts in collection above to be members of projects group
