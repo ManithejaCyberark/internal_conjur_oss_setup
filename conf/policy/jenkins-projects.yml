@@ -1,10 +1,10 @@
 # conjur policy load jenkins projects.yml
 
 - !policy
-  id: jenkins
+  id: myspace
   body:
     - !policy
-      id: projects
+      id: jwt-apps
       annotations:
         description: Projects that do not fall under a folder within Jenkins or project-specific host identities for authn-jwt/jenkins authentication.
         jenkins: true
